@@ -1,0 +1,40 @@
+﻿@page
+@model ErrorModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="py-5">
+<h1 class="h2">Something went wrong</h1>
+<p class="text-secondary">
+    @if (Model.DisplayStatusCode == 404)
+    {
+        <text>That page could not be found.</text>
+    }
+    else if (Model.DisplayStatusCode == 403)
+    {
+        <text>You do not have permission to view this resource.</text>
+    }
+    else if (Model.DisplayStatusCode == 503)
+    {
+        <text>The service is temporarily unavailable. Please try again shortly.</text>
+    }
+    else if (Model.DisplayStatusCode == 400)
+    {
+        <text>The request was not accepted. Please check the address or form and try again.</text>
+    }
+    else
+    {
+        <text>We could not complete that request. Please try again.</text>
+    }
+</p>
+
+@if (Model.ShowRequestId)
+{
+    <p>
+        <strong>Request ID:</strong> <code>@Model.RequestId</code>
+    </p>
+}
+
+<a class="btn btn-primary" asp-page="/Index">Return home</a>
+</div>

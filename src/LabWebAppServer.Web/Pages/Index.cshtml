@@ -1,0 +1,114 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="py-5">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <p class="text-uppercase text-secondary small fw-semibold mb-2">Authenticated workspace</p>
+            <h1 class="display-6 fw-semibold">Work-items</h1>
+            <p class="text-secondary mb-0">@Model.Subject · @Model.Role · expires @Model.Expiry</p>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert" aria-live="polite">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.CanManageWorkItems)
+    {
+        <section class="card shadow-sm mb-4" aria-labelledby="create-work-item-heading">
+            <div class="card-body">
+                <h2 id="create-work-item-heading" class="h5">Create work-item</h2>
+                <form method="post" asp-page-handler="Create" class="row g-3">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <div class="col-md-4">
+                        <label asp-for="Input.Name" class="form-label"></label>
+                        <input asp-for="Input.Name" class="form-control" />
+                        <span asp-validation-for="Input.Name" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-4">
+                        <label asp-for="Input.Description" class="form-label"></label>
+                        <input asp-for="Input.Description" class="form-control" />
+                        <span asp-validation-for="Input.Description" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-2">
+                        <label asp-for="Input.Status" class="form-label"></label>
+                        <select asp-for="Input.Status" class="form-select">
+                            <option>Open</option>
+                            <option>InProgress</option>
+                            <option>Complete</option>
+                        </select>
+                        <span asp-validation-for="Input.Status" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">Create</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    }
+
+    <section id="work-items" aria-labelledby="work-items-heading">
+        <h2 id="work-items-heading" class="h4">Work-items</h2>
+    @if (Model.ListLoadFailed)
+    {
+        <p class="text-secondary">Refresh the page to try loading work-items again.</p>
+    }
+    else if (Model.WorkItems.Count == 0)
+    {
+        <div class="border rounded-3 p-4 text-secondary" role="status">No work-items are available.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <caption class="visually-hidden">Available work-items</caption>
+                <thead>
+                    <tr><th scope="col">Name</th><th scope="col">Status</th><th scope="col">Updated</th><th scope="col" class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var item in Model.WorkItems)
+                {
+                    <tr>
+                        <td>
+                            @if (Model.CanManageWorkItems)
+                            {
+                                <form method="post" asp-page-handler="Update" asp-route-id="@item.Id" class="row g-2">
+                                    <div class="col-md-5"><label class="visually-hidden" for="name-@item.Id">Name</label><input id="name-@item.Id" name="Input.Name" value="@item.Name" class="form-control form-control-sm" maxlength="200" aria-describedby="name-error-@item.Id" /><span id="name-error-@item.Id" asp-validation-for="Input.Name" class="text-danger"></span></div>
+                                    <div class="col-md-4"><label class="visually-hidden" for="description-@item.Id">Description</label><input id="description-@item.Id" name="Input.Description" value="@item.Description" class="form-control form-control-sm" maxlength="2000" aria-describedby="description-error-@item.Id" /><span id="description-error-@item.Id" asp-validation-for="Input.Description" class="text-danger"></span></div>
+                                    <div class="col-md-3"><label class="visually-hidden" for="status-@item.Id">Status</label><select id="status-@item.Id" name="Input.Status" class="form-select form-select-sm" aria-describedby="status-error-@item.Id"><option selected="@(item.Status == "Open")">Open</option><option selected="@(item.Status == "InProgress")">InProgress</option><option selected="@(item.Status == "Complete")">Complete</option></select><span id="status-error-@item.Id" asp-validation-for="Input.Status" class="text-danger"></span></div>
+                                    <div class="col-12"><button type="submit" class="btn btn-sm btn-outline-secondary">Save</button></div>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-page="/WorkItems/Details" asp-route-id="@item.Id">@item.Name</a>
+                            }
+                        </td>
+                        <td>@item.Status</td>
+                        <td>@item.UpdatedAtUtc.ToString("u")</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" asp-page="/WorkItems/Details" asp-route-id="@item.Id">Details</a>
+                            @if (Model.CanManageWorkItems)
+                            {
+                                <form method="post" asp-page-handler="Delete" asp-route-id="@item.Id" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,116 @@
+@page "{key}"
+@model LabWebAppServer.Web.Pages.OperationalStatuses.DetailsModel
+@{
+    ViewData["Title"] = "Operational status details";
+}
+
+<div class="py-5">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <p class="text-uppercase text-secondary small fw-semibold mb-2">Operational register</p>
+            <h1 class="display-6 fw-semibold">@Model.Status?.Key</h1>
+        </div>
+        <a class="btn btn-outline-secondary" asp-page="/OperationalStatuses/Index">Back to statuses</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert" aria-live="polite">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.Status is not null)
+    {
+        <dl class="row">
+            <dt class="col-sm-3">Value</dt>
+            <dd class="col-sm-9">@Model.Status.Value</dd>
+            <dt class="col-sm-3">Status</dt>
+            <dd class="col-sm-9">@Model.Status.Status</dd>
+            <dt class="col-sm-3">Severity</dt>
+            <dd class="col-sm-9">@Model.Status.Severity</dd>
+            <dt class="col-sm-3">Observed</dt>
+            <dd class="col-sm-9">@Model.Status.ObservedAtUtc.ToString("u")</dd>
+            <dt class="col-sm-3">Updated</dt>
+            <dd class="col-sm-9">@Model.Status.UpdatedAtUtc.ToString("u")</dd>
+            <dt class="col-sm-3">Updated by</dt>
+            <dd class="col-sm-9">@Model.Status.UpdatedBy</dd>
+        </dl>
+
+        @if (Model.CanManage)
+        {
+            <section class="card shadow-sm mt-4" aria-labelledby="edit-status-heading">
+                <div class="card-body">
+                    <h2 id="edit-status-heading" class="h5">Update status</h2>
+                    <form method="post" asp-page-handler="Update">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                        <input asp-for="Input.RowVersion" type="hidden" />
+                        <div class="mb-3">
+                            <label asp-for="Input.Status" class="form-label"></label>
+                            <select asp-for="Input.Status" class="form-select">
+                                <option>Open</option>
+                                <option>InProgress</option>
+                                <option>Complete</option>
+                            </select>
+                            <span asp-validation-for="Input.Status" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Value" class="form-label"></label>
+                            <input asp-for="Input.Value" class="form-control" maxlength="200" />
+                            <span asp-validation-for="Input.Value" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Severity" class="form-label"></label>
+                            <select asp-for="Input.Severity" class="form-select">
+                                <option>Info</option>
+                                <option>Warning</option>
+                                <option>Critical</option>
+                            </select>
+                            <span asp-validation-for="Input.Severity" class="text-danger"></span>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                    </form>
+                </div>
+            </section>
+        }
+    }
+</div>
+
+@section Scripts {
+
+        <section class="mt-4" aria-labelledby="status-history-heading">
+            <h2 id="status-history-heading" class="h5">Status history</h2>
+            @if (Model.History.Count == 0)
+            {
+                <p class="text-secondary">No status transitions recorded.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <caption class="visually-hidden">Chronological status transition history</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Changed</th>
+                                <th scope="col">Previous</th>
+                                <th scope="col">New</th>
+                                <th scope="col">Changed by</th>
+                                <th scope="col">Record ID</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var entry in Model.History)
+                        {
+                            <tr>
+                                <td>@entry.ChangedAtUtc.ToString("u")</td>
+                                <td>@entry.PreviousStatus</td>
+                                <td>@entry.NewStatus</td>
+                                <td>@entry.ChangedBy</td>
+                                <td>@entry.Id</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    <partial name="_ValidationScriptsPartial" />
+}

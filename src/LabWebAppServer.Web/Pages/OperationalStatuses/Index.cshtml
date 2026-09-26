@@ -1,0 +1,53 @@
+@page
+@model LabWebAppServer.Web.Pages.OperationalStatuses.IndexModel
+@{
+    ViewData["Title"] = "Operational statuses";
+}
+
+<div class="py-5">
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <p class="text-uppercase text-secondary small fw-semibold mb-2">Operational register</p>
+            <h1 class="display-6 fw-semibold">Operational statuses</h1>
+        </div>
+        <a class="btn btn-outline-secondary" asp-page="/Index">Back to work-items</a>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+    {
+        <div class="alert alert-warning" role="alert" aria-live="polite">@Model.ErrorMessage</div>
+    }
+
+    @if (Model.ListLoadFailed)
+    {
+        <p class="text-secondary">Refresh the page to try loading operational statuses again.</p>
+    }
+    else if (Model.Statuses.Count == 0)
+    {
+        <div class="border rounded-3 p-4 text-secondary" role="status">No operational statuses are available.</div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <caption class="visually-hidden">Operational status register</caption>
+                <thead>
+                    <tr><th scope="col">Key</th><th scope="col">Status</th><th scope="col">Value</th><th scope="col">Severity</th><th scope="col">Updated</th><th scope="col" class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                @foreach (var status in Model.Statuses)
+                {
+                    <tr>
+                        <th scope="row"><a asp-page="/OperationalStatuses/Details" asp-route-key="@status.Key">@status.Key</a></th>
+                        <td>@status.Status</td>
+                        <td>@status.Value</td>
+                        <td>@status.Severity</td>
+                        <td>@status.UpdatedAtUtc.ToString("u")</td>
+                        <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-page="/OperationalStatuses/Details" asp-route-key="@status.Key">Details</a></td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
