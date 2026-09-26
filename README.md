@@ -1,5 +1,7 @@
 # LabWebAppServer
 
+## Purpose
+
 ASP.NET Core (.NET 10) Razor Pages application for Work-items and Operational Statuses. Login calls LabAuthServer and then LabAPIServer to verify identity and role before creating a server-side session. The browser receives a protected session cookie; API bearer tokens stay server-side. Web has no direct SQL access and does not own JWT signing or API authorization.
 
 ## Repository layout
@@ -40,3 +42,23 @@ Web needs no database connection string, SQL credentials, AD service credential,
 Publish validated source with `dotnet publish src/LabWebAppServer.Web -c Release -o <EXTERNAL_PUBLISH_DIRECTORY>`. Local environment settings and example settings are excluded from publish output. Keep artifacts, IIS configuration and backups outside this source repository. Configure a dedicated IIS pool, .NET Hosting Bundle, HTTPS and normally trusted outbound Auth/API TLS. Deploy after compatible Auth/API/database provisioning. Retain the previous compatible artifact and runtime settings for rollback; expect users to log in again after recycle or rollback. See the [operations runbook](docs/operations/LabWebAppServer-Operations-Runbook.md).
 
 API changes require Postman updates, including Web expectations for changed API contracts. Acceptance tests are required before release: login, all role outcomes, antiforgery, business journeys, cleanup and logout against the exact artifact. Follow [development and release rules](docs/Development-Rules.md). Existing external Postman collections have not been imported or rerun by repository preparation.
+
+## CI and test instructions
+
+The [build workflow](.github/workflows/build.yml) restores, builds and tests on pushes and pull requests targeting `main`, using Windows and .NET SDK 10.0.400. Branch names are not changed by this setup. Repositories still on `master` will not trigger this workflow until work targets `main`.
+
+After the restore/build commands above, use this isolated local validation command:
+
+```powershell
+dotnet test LabWebAppServer.slnx -c Release --no-build --no-restore
+```
+
+Clear operational test configuration/opt-in variables in the test process first, as the workflow does. See [release process and CI limitations](docs/Release-Process.md) for the exact external-dependency exclusions and required acceptance. CI does not deploy or substitute for live acceptance.
+
+## Architecture role
+
+See [Architecture](docs/Architecture.md) for Browser -> Web -> Auth/AD and API/SQL responsibilities. Auth owns authentication, verified identity and role issuance; API owns business authorization and database access; Web owns UI, server-side sessions/cookies and API clients.
+
+## API/Postman update requirement
+
+New, modified or removed API endpoints require matching Postman updates before completion. Acceptance tests are required before release, covering success, authentication, role-specific authorization, validation/errors and verified cleanup of run-owned fixtures. Web expectations must follow changed API contracts. Keep credentials and tokens out of collections and repository files. Follow [Release Process](docs/Release-Process.md) for tagging, build verification, artifact checksums and rollback readiness.
